@@ -35,12 +35,9 @@ _CODE_FAILED_SATURATED           = const(0x03)
 _CODE_FAILED_NOT_NEW             = const(0x04)
 _CODE_FAILED_TIMEOUT             = const(0x05)
 
-I2C_SPEED_STANDARD              = const(100000)
-I2C_SPEED_FAST                  = const(400000)
-
 class sparkfun_rfd77402: 
 
-    def __init__(self, i2c, address=RFD77402_ADDR, i2cSpeed = I2C_SPEED_STANDARD):
+    def __init__(self, i2c, address=RFD77402_ADDR):
         self._device = I2CDevice(i2c, address)   
 
     def begin(self): 
@@ -144,4 +141,4 @@ class sparkfun_rfd77402:
 	_distance = 0
 	_validPixels = 0
 	_confidenceValue = 0
-	_calibrationData[54] # Loaded by the 0x006 mailbox command
+	# _calibrationData[54] # Loaded by the 0x006 mailbox command
