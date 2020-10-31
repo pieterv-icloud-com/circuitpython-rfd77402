@@ -140,7 +140,7 @@ class sparkfun_rfd77402:
 	def write_register(self, addr, val):
         pass
     
-    //Variables
+    # Variables
 	_distance = 0
 	_validPixels = 0
 	_confidenceValue = 0
