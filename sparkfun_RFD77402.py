@@ -81,8 +81,8 @@ class rfd77402:
 
         # ToF Configuration
         # self.write_16(_RFD77402_CONFIGURE_A, 0xE100) # 0b.1110.0001 = Peak is 0x0E, Threshold is 1.
-        self.set_peak(0x0E) # Suggested values from page 20
-        self.set_threshold(0x01)
+        self.peak = 0x0E # Suggested values from page 20
+        self.threshold = 0x01
 
         self._write_16(_RFD77402_CONFIGURE_B, 0x10FF)    # Set valid pixel. Set MSP430 default config.
         self._write_16(_RFD77402_CONFIGURE_HW_0, 0x07D0) # Set saturation threshold = 2,000.
@@ -196,6 +196,7 @@ class rfd77402:
 
     @property
     def get_distance(self):
+        self.take_measurement()
         return self._distance
 
 	# Gets whatever is in the 'MCPU to Host' mailbox. Check ICSR bit 5 before reading.
