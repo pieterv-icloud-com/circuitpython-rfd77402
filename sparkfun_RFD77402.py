@@ -52,76 +52,184 @@ class rfd77402:
         if (not self.goto_standby_mode()): 
             return False # Chip timed out before going to standby
 
-        # # Drive INT_PAD high
-        # setting = self._read(_RFD77402_ICSR)
-        # setting &= 0b11110000 # clears writable bits
-        # self._write(_RFD77402_ICSR, setting)
-        # setting = self._read(_RFD77402_INTERRUPTS)
-        # setting &= 0b00000000 # Clears bits
-        # self.write(_RFD77402_INTERRUPTS, setting)
+        # Drive INT_PAD high
+        setting = self._read(_RFD77402_ICSR)
+        setting &= 0b11110000 # clears writable bits
+        self._write(_RFD77402_ICSR, setting)
+        setting = self._read(_RFD77402_INTERRUPTS)
+        setting &= 0b00000000 # Clears bits
+        self._write(_RFD77402_INTERRUPTS, setting)
 
-        # # Configure I2C Interface
-        # self._write16(_RFD77402_CONFIGURE_I2C, 0x65) # 0b.0110.0101 = Address increment, auto increment, host debug, MCPU debug
+        # Configure I2C Interface
+        self._write_16(_RFD77402_CONFIGURE_I2C, 0x65) # 0b.0110.0101 = Address increment, auto increment, host debug, MCPU debug
 
-        # # Set initialization - Magic from datasheet. Write 0x05 to 0x15 location.
-        # self._write_16(_RFD77402_CONFIGURE_PMU, 0x0500) # 0b.0000.0101.0000.0000 //Patch_code_id_en, Patch_mem_en
+        # Set initialization - Magic from datasheet. Write 0x05 to 0x15 location.
+        self._write_16(_RFD77402_CONFIGURE_PMU, 0x0500) # 0b.0000.0101.0000.0000 //Patch_code_id_en, Patch_mem_en
 
-        # if (not self.goto_offmode()):
-        #     return False # MCPU never turned off
+        if (not self.goto_off_mode()):
+            return False # MCPU never turned off
 
-        # # Read Module ID
-        # # Skipped
+        # Read Module ID
+        # Skipped
 
-        # # Read Firmware ID
-        # #Skipped
+        # Read Firmware ID
+        # Skipped
 
-        # # Set initialization - Magic from datasheet. Write 0x06 to 0x15 location.
-        # self._write_16(_RFD77402_CONFIGURE_PMU, 0x0600) # MCPU_Init_state, Patch_mem_en
+        # Set initialization - Magic from datasheet. Write 0x06 to 0x15 location.
+        self._write_16(_RFD77402_CONFIGURE_PMU, 0x0600) # MCPU_Init_state, Patch_mem_en
 
-        # if (not self.goto_on_mode()):
-        #     return False # MCPU never turned on
+        if (not self.goto_on_mode()):
+            return False # MCPU never turned on
 
-        # # ToF Configuration
-        # # self.write_16(_RFD77402_CONFIGURE_A, 0xE100) # 0b.1110.0001 = Peak is 0x0E, Threshold is 1.
-        # self.set_peak(0x0E) # Suggested values from page 20
-        # self.set_threshold(0x01)
+        # ToF Configuration
+        # self.write_16(_RFD77402_CONFIGURE_A, 0xE100) # 0b.1110.0001 = Peak is 0x0E, Threshold is 1.
+        self.set_peak(0x0E) # Suggested values from page 20
+        self.set_threshold(0x01)
 
-        # self._write_16(_RFD77402_CONFIGURE_B, 0x10FF)    # Set valid pixel. Set MSP430 default config.
-        # self._write_16(_RFD77402_CONFIGURE_HW_0, 0x07D0) # Set saturation threshold = 2,000.
-        # self._write_16(_RFD77402_CONFIGURE_HW_1, 0x5008) # Frequecy = 5. Low level threshold = 8.
-        # self._write_16(_RFD77402_CONFIGURE_HW_2, 0xA041) # Integration time = 10 * (6500-20)/15)+20 = 4.340ms. Plus reserved magic.
-        # self._write_16(_RFD77402_CONFIGURE_HW_3, 0x45D4) # Enable harmonic cancellation. Enable auto adjust of integration time Plus reserved magic.
+        self._write_16(_RFD77402_CONFIGURE_B, 0x10FF)    # Set valid pixel. Set MSP430 default config.
+        self._write_16(_RFD77402_CONFIGURE_HW_0, 0x07D0) # Set saturation threshold = 2,000.
+        self._write_16(_RFD77402_CONFIGURE_HW_1, 0x5008) # Frequecy = 5. Low level threshold = 8.
+        self._write_16(_RFD77402_CONFIGURE_HW_2, 0xA041) # Integration time = 10 * (6500-20)/15)+20 = 4.340ms. Plus reserved magic.
+        self._write_16(_RFD77402_CONFIGURE_HW_3, 0x45D4) # Enable harmonic cancellation. Enable auto adjust of integration time Plus reserved magic.
 
-        # if (not self.goto_standby_mode()): 
-        #     return False # Error - MCPU never went to standby
+        if (not self.goto_standby_mode()): 
+            return False # Error - MCPU never went to standby
 
-        # # Whew! We made it through power on configuration
+        # Whew! We made it through power on configuration
 
-        # # Get the calibration data via the 0x0006 mailbox command
-        # # self.get_calibration_data() # Skipped
+        # Get the calibration data via the 0x0006 mailbox command
+        # self.get_calibration_data() # Skipped
         
-        # # Put device into Standby mode
-        # if (not self.goto_standby_mode()):
-        #     return False # Error - MCPU never went to standby
+        # Put device into Standby mode
+        if (not self.goto_standby_mode()):
+            return False # Error - MCPU never went to standby
 
-        # # Now assume user will want sensor in measurement mode
+        # Now assume user will want sensor in measurement mode
 
-        # # Set initialization - Magic from datasheet. Write 0x05 to 0x15 location.
-        # self._write_16(_RFD77402_CONFIGURE_PMU, 0x0500) # Patch_code_id_en, Patch_mem_en
+        # Set initialization - Magic from datasheet. Write 0x05 to 0x15 location.
+        self._write_16(_RFD77402_CONFIGURE_PMU, 0x0500) # Patch_code_id_en, Patch_mem_en
 
-        # if (not self.goto_off_mode()):
-        #     return False # Error - MCPU never turned off
+        if (not self.goto_off_mode()):
+            return False # Error - MCPU never turned off
 
-        # # Write calibration data
-        # # Skipped
+        # Write calibration data
+        # Skipped
 
-        # # Set initialization - Magic from datasheet. Write 0x06 to 0x15 location.
-        # self._write_16(_RFD77402_CONFIGURE_PMU, 0x0600) # MCPU_Init_state, Patch_mem_en
+        # Set initialization - Magic from datasheet. Write 0x06 to 0x15 location.
+        self._write_16(_RFD77402_CONFIGURE_PMU, 0x0600) # MCPU_Init_state, Patch_mem_en
 
-        # if ( not self.goto_on_mode()):
-        #     return False # Error - MCPU never turned on
+        if ( not self.goto_on_mode()):
+            return False # Error - MCPU never turned on
 
         return True
+
+    # Takes a single measurement and sets the global variables with new data
+    def take_measurement(self): 
+        if (not self.goto_measurement_mode()):
+            return CODE_FAILED_TIMEOUT # Error - Timeout
+
+        # New data is now available!
+
+        # Read result
+        resultRegister = self._read_16(_RFD77402_RESULT)
+
+        if (resultRegister & 0x7FFF): # Reading is valid
+            errorCode = (resultRegister >> 13) & 0x03
+
+            if (errorCode == 0):
+                self._distance = (resultRegister >> 2) & 0x07FF # Distance is good. Read it.
+
+                # Read confidence register
+                confidenceRegister = self._read_16(_RFD77402_RESULT_CONFIDENCE)
+                self._validPixels = confidenceRegister & 0x0F
+                self._confidenceValue = (confidenceRegister >> 4) & 0x07FF
+
+            return errorCode
+        else:
+            # Reading is not vald
+            return CODE_FAILED_NOT_NEW # Error code for reading is not new
+
+    # Returns the local variable to the caller
+    def distance(self):
+        return self._distance
+
+	# Returns the number of valid pixels found when taking measurement
+    def valid_pixels(self):
+        return self._validPixels
+
+	# Returns the qualitative value representing how confident the sensor is about its reported distance
+    def confidence_value(self):
+        return self._confidenceValue
+
+	# Returns the qualitative value representing how confident the sensor is about its reported distance
+    def mode(self):
+        return (self.read(_RFD77402_COMMAND) & 0x3F)        
+
+	# Returns the VCSEL peak 4-bit value
+    def get_peak(self):
+        configValue = self._read_16(_RFD77402_CONFIGURE_A)
+        return ((configValue >> 12) & 0x0F)
+
+	# Sets the VCSEL peak 4-bit value
+    def set_peak(self, peak):
+        configValue = self._read_16(_RFD77402_CONFIGURE_A) # Read
+        configValue &= ~0xF000 # Zero out the peak configuration bits
+        configValue |= peak << 12 # Mask in user's settings
+        self._write_16(_RFD77402_CONFIGURE_A, configValue) # Write in this new value
+
+	# Returns the VCSEL Threshold 4-bit value
+    def get_threshold(self):
+        configValue = self._read_16(_RFD77402_CONFIGURE_A)
+        return ((configValue >> 8) & 0x0F)
+
+	#Sets the VCSEL Threshold 4-bit value
+    def set_threshold(self, threshold):
+        configValue = self._read_16(_RFD77402_CONFIGURE_A) # Read
+        configValue &= ~0x0F00 # Zero out the threshold configuration bits
+        configValue |= threshold << 8 # Mask in user's settings
+        self._write_16(_RFD77402_CONFIGURE_A, configValue) # Write in this new value
+
+	# Returns the VCSEL Frequency 4-bit value
+    def get_frequency(self):
+        configValue = self._read_16(_RFD77402_CONFIGURE_HW_1)
+        return ((configValue >> 12) & 0x0F)
+
+	# Sets the VCSEL Frequency 4-bit value
+    def set_frequency(self, threshold):
+        configValue = self._read_16(_RFD77402_CONFIGURE_HW_1) # Read
+        configValue &= ~0xF000 # Zero out the threshold configuration bits
+        configValue |= threshold << 12 # Mask in user's settings
+        self._write_16(_RFD77402_CONFIGURE_HW_1, configValue) # Write in this new value
+
+	# Gets whatever is in the 'MCPU to Host' mailbox. Check ICSR bit 5 before reading.
+    def get_mailbox(self):
+        return self._read_16(_RFD77402_MCPU_TO_HOST_MAILBOX)        
+
+	# Tell MCPU to go to on state. Return true if successful
+    def goto_on_mode(self):
+        # Set MCPU_ON
+        self._write(_RFD77402_COMMAND, 0x92) # 0b.1001.0010 = Wake up MCPU to ON mode. Set valid command.
+
+        # Check MCPU_ON Status
+        for x in range(9):
+            if (self._read_16(_RFD77402_DEVICE_STATUS) & 0x001F) == 0x0018: 
+                return True # MCPU is now on
+            time.sleep(0.01) # Suggested timeout for status checks from datasheet
+
+        return False # Error - MCPU never turned on        
+
+    # # Tell MCPU to go to off state. Return true if successful
+    def goto_off_mode(self):
+        # Set MCPU_OFF
+        self._write(_RFD77402_COMMAND, 0x91) # 0b.1001.0001 = Go MCPU off state. Set valid command.
+
+        # Check MCPU_OFF Status
+        for x in range(9):
+            if (self._read_16(_RFD77402_DEVICE_STATUS) & 0x001F) == 0x0010:
+                return True # MCPU is now off
+            time.sleep(0.01) # Suggested timeout for status checks from datasheet
+
+        return False # Error - MCPU never turned off
 
     # Tell MCPU to go to standby mode. Return true if successful
     def goto_standby_mode(self):
@@ -134,7 +242,20 @@ class rfd77402:
                 return True # MCPU is now in standby
                 time.sleep(0.01) # Suggested timeout for status checks from datasheet
             else:
-                return False # Error - MCPU never went to standby        
+                return False # Error - MCPU never went to standby       
+
+	# Tell MCPU to go to measurement mode. Takes a measurement. If measurement data is ready, return true
+    def goto_measurement_mode(self):
+        # Single measure command
+        self._write(_RFD77402_COMMAND, 0x81) # 0b.1000.0001 = Single measurement. Set valid command.
+
+        # Read ICSR Register - Check to see if measurement data is ready
+        for x in range(9):
+            if (self._readRegister(_RFD77402_ICSR) & (1 << 4)) != 0: 
+                return True # Data is ready!
+            time.sleep(0.01) # Suggested timeout for status checks from datasheet
+	    
+        return False # Error - Timeout                 
 
 	# Returns the chip ID. Should be 0xAD01 or higher.
     def get_chip_id(self):
@@ -170,7 +291,7 @@ class rfd77402:
             print("_read()")
             print(address)
         with self._device:
-            out_buffer = bytes([(address >> 8)])
+            out_buffer = bytes([address])
             if self._debug:
                 print(out_buffer)
             in_buffer = bytearray(1)
@@ -188,7 +309,7 @@ class rfd77402:
             print(address)
             print(data)
         with self._device:
-            out_buffer = bytes([address, data])
+            out_buffer = bytes([address, data & 0xFF, data >> 8])
             if self._debug:
                 print(out_buffer)
             self._device.write(out_buffer)
