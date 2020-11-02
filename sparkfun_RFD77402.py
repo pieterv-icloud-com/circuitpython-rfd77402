@@ -39,14 +39,12 @@ CODE_FAILED_TIMEOUT             = const(0x05)
 
 class rfd77402: 
 
-    _debug = False
-
     def __init__(self, i2c, address=RFD77402_ADDR, debug=False):
         self._device = I2CDevice(i2c, address)   
         self._debug = debug
 
     def begin(self): 
-        if(self.get_chip_id() < 0xAD00):
+        if(self.chip_id < 0xAD00):
             return False # Chip ID failed. Should be 0xAD01 or 0xAD02
 
         if (not self.goto_standby_mode()): 
@@ -149,57 +147,56 @@ class rfd77402:
             # Reading is not vald
             return CODE_FAILED_NOT_NEW # Error code for reading is not new
 
-    # Returns the local variable to the caller
-    def distance(self):
-        return self._distance
-
-	# Returns the number of valid pixels found when taking measurement
-    def valid_pixels(self):
-        return self._validPixels
-
 	# Returns the qualitative value representing how confident the sensor is about its reported distance
-    def confidence_value(self):
-        return self._confidenceValue
-
-	# Returns the qualitative value representing how confident the sensor is about its reported distance
+    @property
     def mode(self):
         return (self.read(_RFD77402_COMMAND) & 0x3F)        
 
 	# Returns the VCSEL peak 4-bit value
-    def get_peak(self):
+    @property
+    def peak(self):
         configValue = self._read_16(_RFD77402_CONFIGURE_A)
         return ((configValue >> 12) & 0x0F)
 
-	# Sets the VCSEL peak 4-bit value
-    def set_peak(self, peak):
+    # Sets the VCSEL peak 4-bit value
+    @peak.setter
+    def set_peak(self, value):
         configValue = self._read_16(_RFD77402_CONFIGURE_A) # Read
         configValue &= ~0xF000 # Zero out the peak configuration bits
-        configValue |= peak << 12 # Mask in user's settings
+        configValue |= value << 12 # Mask in user's settings
         self._write_16(_RFD77402_CONFIGURE_A, configValue) # Write in this new value
 
 	# Returns the VCSEL Threshold 4-bit value
-    def get_threshold(self):
+    @property
+    def threshold(self):
         configValue = self._read_16(_RFD77402_CONFIGURE_A)
         return ((configValue >> 8) & 0x0F)
 
 	#Sets the VCSEL Threshold 4-bit value
-    def set_threshold(self, threshold):
+    @threshold.setter
+    def set_threshold(self, value):
         configValue = self._read_16(_RFD77402_CONFIGURE_A) # Read
         configValue &= ~0x0F00 # Zero out the threshold configuration bits
-        configValue |= threshold << 8 # Mask in user's settings
+        configValue |= value << 8 # Mask in user's settings
         self._write_16(_RFD77402_CONFIGURE_A, configValue) # Write in this new value
 
-	# Returns the VCSEL Frequency 4-bit value
-    def get_frequency(self):
+	# Returns the VCSEL Frequency 4-bit value\
+    @property
+    def frequency(self):
         configValue = self._read_16(_RFD77402_CONFIGURE_HW_1)
         return ((configValue >> 12) & 0x0F)
 
 	# Sets the VCSEL Frequency 4-bit value
-    def set_frequency(self, threshold):
+    @frequency.setter
+    def set_frequency(self, value):
         configValue = self._read_16(_RFD77402_CONFIGURE_HW_1) # Read
         configValue &= ~0xF000 # Zero out the threshold configuration bits
-        configValue |= threshold << 12 # Mask in user's settings
+        configValue |= value << 12 # Mask in user's settings
         self._write_16(_RFD77402_CONFIGURE_HW_1, configValue) # Write in this new value
+
+    @property
+    def get_distance(self):
+        return self._distance
 
 	# Gets whatever is in the 'MCPU to Host' mailbox. Check ICSR bit 5 before reading.
     def get_mailbox(self):
@@ -258,7 +255,8 @@ class rfd77402:
         return False # Error - Timeout                 
 
 	# Returns the chip ID. Should be 0xAD01 or higher.
-    def get_chip_id(self):
+    @property
+    def chip_id(self):
         return self._read_16(_RFD77402_MOD_CHIP_ID)
 
     # Software reset the device
