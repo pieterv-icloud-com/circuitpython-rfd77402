@@ -44,6 +44,9 @@ class rfd77402:
         self._debug = debug
 
     def begin(self): 
+        if self._debug:
+            print("begin()")
+
         if(self.chip_id < 0xAD00):
             return False # Chip ID failed. Should be 0xAD01 or 0xAD02
 
@@ -123,6 +126,9 @@ class rfd77402:
 
     # Takes a single measurement and sets the global variables with new data
     def take_measurement(self): 
+        if self._debug:
+            print("take_measurement()")
+
         if (not self.goto_measurement_mode()):
             return CODE_FAILED_TIMEOUT # Error - Timeout
 
@@ -150,17 +156,25 @@ class rfd77402:
 	# Returns the qualitative value representing how confident the sensor is about its reported distance
     @property
     def mode(self):
+        if self._debug:
+            print("mode()")
         return (self.read(_RFD77402_COMMAND) & 0x3F)        
 
 	# Returns the VCSEL peak 4-bit value
     @property
     def peak(self):
+        if self._debug:
+            print("peak()")
+
         configValue = self._read_16(_RFD77402_CONFIGURE_A)
         return ((configValue >> 12) & 0x0F)
 
     # Sets the VCSEL peak 4-bit value
     @peak.setter
-    def set_peak(self, value):
+    def peak(self, value):
+        if self._debug:
+            print("set_peak()")
+
         configValue = self._read_16(_RFD77402_CONFIGURE_A) # Read
         configValue &= ~0xF000 # Zero out the peak configuration bits
         configValue |= value << 12 # Mask in user's settings
@@ -169,12 +183,18 @@ class rfd77402:
 	# Returns the VCSEL Threshold 4-bit value
     @property
     def threshold(self):
+        if self._debug:
+            print("threshold()")
+
         configValue = self._read_16(_RFD77402_CONFIGURE_A)
         return ((configValue >> 8) & 0x0F)
 
 	#Sets the VCSEL Threshold 4-bit value
     @threshold.setter
-    def set_threshold(self, value):
+    def threshold(self, value):
+        if self._debug:
+            print("set_threshold()")
+
         configValue = self._read_16(_RFD77402_CONFIGURE_A) # Read
         configValue &= ~0x0F00 # Zero out the threshold configuration bits
         configValue |= value << 8 # Mask in user's settings
@@ -183,28 +203,43 @@ class rfd77402:
 	# Returns the VCSEL Frequency 4-bit value\
     @property
     def frequency(self):
+        if self._debug:
+            print("frequency()")
+
         configValue = self._read_16(_RFD77402_CONFIGURE_HW_1)
         return ((configValue >> 12) & 0x0F)
 
 	# Sets the VCSEL Frequency 4-bit value
     @frequency.setter
-    def set_frequency(self, value):
+    def frequency(self, value):
+        if self._debug:
+            print("set_frequency()")
+
         configValue = self._read_16(_RFD77402_CONFIGURE_HW_1) # Read
         configValue &= ~0xF000 # Zero out the threshold configuration bits
         configValue |= value << 12 # Mask in user's settings
         self._write_16(_RFD77402_CONFIGURE_HW_1, configValue) # Write in this new value
 
     @property
-    def get_distance(self):
+    def distance(self):
+        if self._debug:
+            print("distance()")
+
         self.take_measurement()
         return self._distance
 
 	# Gets whatever is in the 'MCPU to Host' mailbox. Check ICSR bit 5 before reading.
-    def get_mailbox(self):
+    def mailbox(self):
+        if self._debug:
+            print("mailbox()")
+
         return self._read_16(_RFD77402_MCPU_TO_HOST_MAILBOX)        
 
 	# Tell MCPU to go to on state. Return true if successful
     def goto_on_mode(self):
+        if self._debug:
+            print("goto_on_mode()")
+
         # Set MCPU_ON
         self._write(_RFD77402_COMMAND, 0x92) # 0b.1001.0010 = Wake up MCPU to ON mode. Set valid command.
 
@@ -218,6 +253,9 @@ class rfd77402:
 
     # # Tell MCPU to go to off state. Return true if successful
     def goto_off_mode(self):
+        if self._debug:
+            print("goto_off_mode()")
+
         # Set MCPU_OFF
         self._write(_RFD77402_COMMAND, 0x91) # 0b.1001.0001 = Go MCPU off state. Set valid command.
 
@@ -231,6 +269,9 @@ class rfd77402:
 
     # Tell MCPU to go to standby mode. Return true if successful
     def goto_standby_mode(self):
+        if self._debug:
+            print("goto_standby_mode()")
+            
         #Set Low Power Standby
         self._write(_RFD77402_COMMAND, 0x90) # 0b.1001.0000 = Go to standby mode. Set valid command.
 
@@ -244,6 +285,9 @@ class rfd77402:
 
 	# Tell MCPU to go to measurement mode. Takes a measurement. If measurement data is ready, return true
     def goto_measurement_mode(self):
+        if self._debug:
+            print("goto_measurement_mode()")
+
         # Single measure command
         self._write(_RFD77402_COMMAND, 0x81) # 0b.1000.0001 = Single measurement. Set valid command.
 
@@ -258,12 +302,70 @@ class rfd77402:
 	# Returns the chip ID. Should be 0xAD01 or higher.
     @property
     def chip_id(self):
+        if self._debug:
+            print("chip_id()")
+
         return self._read_16(_RFD77402_MOD_CHIP_ID)
 
     # Software reset the device
     def reset(self):
+        if self._debug:
+            print("reset()")
+
         self._write(_RFD77402_COMMAND, 1<<6)
         time.sleep(0.1)  
+
+	# Retreive 2*27 bytes from MCPU for computation of calibration parameters
+	# Reads 54 bytes into the calibration[] array
+	# Returns true if new cal data is loaded
+    @property
+    def calibration_data(self):
+
+        self._calibrationData[54]
+
+        if not self._goto_on_mode():
+            return False # Error - sensor timed out before getting to On Mode
+
+        # Check ICSR Register and read Mailbox until it is empty
+        messages = 0
+        while (1):
+            if ( (self._read(_RFD77402_ICSR) & (1 << 5)) == 0):
+                break # Mailbox interrupt is cleared
+
+            # Mailbox interrupt (Bit 5) is set so read the M2H mailbox register
+            self.mailbox # Throw it out. Just read to clear the register.
+
+            messages = messages + 1
+
+            if messages > 27:
+                return False # Error - Too many messages
+
+            time.sleep(0.01) # Suggested timeout for status checks from datasheet
+
+        # Issue mailbox command
+        self.write_16(_RFD77402_HOST_TO_MCPU_MAILBOX, 0x0006) # Send 0x0006 mailbox command
+
+        # Check to see if Mailbox can be read
+        # Read 54 bytes of payload into the calibration[54] array
+        for message in range(26):
+            # Wait for bit to be set
+            x = 0
+            while 1:
+                icsr = self.read(_RFD77402_ICSR)
+                if ((icsr & (1 << 5)) != 0):
+                    break # New message in available
+
+                x = x + 1
+                if x > 10:
+                    return False #Error - Timeout
+
+                time.sleep(0.01) # Suggested timeout for status checks from datasheet
+
+            incoming = self.mailbox # Get 16-bit message
+
+            # Put message into larger calibrationData array
+            self._calibrationData[message * 2] = incoming >> 8
+            self._calibrationData[message * 2 + 1] = incoming & 0xFF        
 
     # Reads two bytes from a given location from the RFD77402
     def _read_16(self, address):
@@ -271,16 +373,12 @@ class rfd77402:
         # specified 16-bit register address.
         if self._debug:
             print("_read_16()")
-            print(address)
         with self._device:
-            # out_buffer = bytes([address])
             out_buffer = bytes([address])
-            if self._debug:
-                print(out_buffer)
             in_buffer = bytearray(2)
             self._device.write_then_readinto(out_buffer, in_buffer)
             if self._debug:
-                print(in_buffer)
+                print("$%02X => %s" % (address, [hex(i) for i in in_buffer]))
             return (in_buffer[1] << 8) | in_buffer[0]
 	
     # Reads from a given location from the RFD77402
@@ -288,15 +386,12 @@ class rfd77402:
         # Read and return a byte from the specified 16-bit register address.
         if self._debug:
             print("_read()")
-            print(address)
         with self._device:
             out_buffer = bytes([address])
-            if self._debug:
-                print(out_buffer)
             in_buffer = bytearray(1)
             self._device.write_then_readinto(out_buffer, in_buffer)
             if self._debug:
-                print(in_buffer)
+                print("$%02X => %s" % (address, [hex(i) for i in in_buffer]))
             return in_buffer[0]
 
 	# Write a 16 bit value to a spot in the RFD77402
@@ -305,12 +400,10 @@ class rfd77402:
         # address.
         if self._debug:
             print("_write_16()")
-            print(address)
-            print(data)
         with self._device:
             out_buffer = bytes([address, data & 0xFF, data >> 8])
             if self._debug:
-                print(out_buffer)
+                print("$%02X <= 0x%02X" % (address, data))
             self._device.write(out_buffer)
 
     # Write a value to a spot in the RFD77402
@@ -318,10 +411,8 @@ class rfd77402:
         # Write 1 byte of data from the specified 16-bit register address.\
         if self._debug:
             print("_write_16()")
-            print(address)
-            print(data)
         with self._device:
             out_buffer = bytes([address, data])
             if self._debug:
-                print(out_buffer)
+                print("$%02X <= 0x%02X" % (address, data))
             self._device.write(out_buffer)
