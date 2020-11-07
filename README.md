@@ -32,25 +32,27 @@ CircuitPython sample for using the [RFD77402](https://www.sparkfun.com/products/
 |9|Yellow|
 |8|Blue|
 
-## Reinstall esptool from esp-idf
+## ESP32
+
+### Reinstall esptool from esp-idf
 
 ```bash
 pip install -e ~/esp/esp-idf/components/esptool_py/esptool
 ```
 
-## Erase
+### Erase
 
 ```bash
 esptool.py --chip esp32s2 --port /dev/tty.SLAB_USBtoUART3 -b 460800 erase_flash
 ```
 
-## Flash
+### Flash with CircuitPython 6.0.0 RC 1
 
 ```bash
-esptool.py --chip esp32s2 --port /dev/tty.SLAB_USBtoUART3 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 4MB 0x0000 ~/downloads/adafruit-circuitpython-espressif_saola_1_wroom-en_US-6.0.0-rc.0.bin
+esptool.py --chip esp32s2 --port /dev/tty.SLAB_USBtoUART3 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 4MB 0x0000 ~/downloads/adafruit-circuitpython-espressif_saola_1_wroom-en_US-6.0.0-rc.1.bin
 ```
 
-## Connect to REPL
+### Connect to REPL
 
 ```bash
 screen /dev/tty.usbmodem7CDFA100994C1 115200
