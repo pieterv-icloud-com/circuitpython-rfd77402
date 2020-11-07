@@ -155,10 +155,25 @@ class rfd77402:
 
 	# Returns the qualitative value representing how confident the sensor is about its reported distance
     @property
+    def confidence(self):
+        if self._debug:
+            print("confidence()")        
+        return self._confidenceValue            
+
+	# Returns the qualitative value representing how confident the sensor is about its reported distance
+    @property
     def mode(self):
         if self._debug:
             print("mode()")
-        return (self.read(_RFD77402_COMMAND) & 0x3F)        
+        return (self.read(_RFD77402_COMMAND) & 0x3F) 
+
+	# Returns the number of valid pixels found when taking measurement
+    @property
+    def pixels(self):
+        if self._debug:
+            print("pixels()")
+
+        return self._validPixels               
 
 	# Returns the VCSEL peak 4-bit value
     @property
@@ -293,7 +308,7 @@ class rfd77402:
 
         # Read ICSR Register - Check to see if measurement data is ready
         for x in range(9):
-            if (self._readRegister(_RFD77402_ICSR) & (1 << 4)) != 0: 
+            if (self._read(_RFD77402_ICSR) & (1 << 4)) != 0: 
                 return True # Data is ready!
             time.sleep(0.01) # Suggested timeout for status checks from datasheet
 	    
