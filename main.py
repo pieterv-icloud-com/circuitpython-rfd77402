@@ -4,15 +4,58 @@ import busio
 import sparkfun_rfd77402
 from sparkfun_rfd77402 import RFD77402_ADDR
 
+import displayio
+import terminalio
+from adafruit_display_text import label
+import adafruit_displayio_ssd1306
+
+displayio.release_displays()
+
 i2c = busio.I2C(sda=board.IO8, scl=board.IO9)
 
 proximity_bus = sparkfun_rfd77402.rfd77402(i2c=i2c, address=RFD77402_ADDR, debug=True)
+
+display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
+
+WIDTH = 128
+HEIGHT = 32  # Change to 64 if needed
+
+display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=WIDTH, height=HEIGHT)
 
 if proximity_bus.begin():
     while True:
         distance = proximity_bus.distance
         pixels = proximity_bus.pixels
         confidence = proximity_bus.confidence
+
+        # Make the display context
+        splash = displayio.Group(max_size=10)
+        display.show(splash)
+
+        color_bitmap = displayio.Bitmap(WIDTH, HEIGHT, 1)
+        color_palette = displayio.Palette(1)
+        color_palette[0] = 0xFFFFFF  # White
+
+        bg_sprite = displayio.TileGrid(color_bitmap, pixel_shader=color_palette, x=0, y=0)
+        splash.append(bg_sprite)
+
+        # Distance
+        text = "Distance:" + str(distance) + " mm"
+        text_area = label.Label(terminalio.FONT, text=text, color=0x000000, x=2, y=HEIGHT // 3 - 1)
+
+        splash.append(text_area)
+
+        # Pixels
+        text = "Pixels:" + str(pixels)
+        text_area = label.Label(terminalio.FONT, text=text, color=0x000000, x=2, y=(HEIGHT // 3 - 1) * 2)
+
+        splash.append(text_area)
+
+        # Confidence
+        text = "Confidence:" + str(pixels)
+        text_area = label.Label(terminalio.FONT, text=text, color=0x000000, x=2, y=(HEIGHT // 3 - 1) * 3)
+
+        splash.append(text_area)
 
         print("distance:", distance, "mm pixels:", pixels, "confidence:", confidence, "\n", sep=" ")
 
