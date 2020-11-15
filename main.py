@@ -9,6 +9,24 @@ import terminalio
 from adafruit_display_text import label
 import adafruit_displayio_ssd1306
 
+import ipaddress
+import ssl
+import wifi
+import socketpool
+import adafruit_requests
+
+# Get wifi details and more from a secrets.py file
+try:
+    from secrets import secrets
+except ImportError:
+    print("WiFi secrets are kept in secrets.py, please add them there!")
+    raise
+
+print("Connecting to %s"%secrets["ssid"])
+wifi.radio.connect(secrets["ssid"], secrets["password"])
+print(print("Connected to %s!"%secrets["ssid"]))
+print("My IP address is", wifi.radio.ipv4_address)
+
 displayio.release_displays()
 
 i2c = busio.I2C(sda=board.IO8, scl=board.IO9)

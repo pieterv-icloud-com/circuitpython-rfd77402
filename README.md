@@ -32,7 +32,7 @@ CircuitPython sample for using the [RFD77402](https://www.sparkfun.com/products/
 |9|Yellow|
 |8|Blue|
 
-## ESP32
+## ESP32-S2
 
 ### Reinstall esptool from esp-idf
 
@@ -49,7 +49,7 @@ esptool.py --chip esp32s2 --port /dev/tty.SLAB_USBtoUART3 -b 460800 erase_flash
 ### Flash with CircuitPython 6.0.0 RC 1
 
 ```bash
-esptool.py --chip esp32s2 --port /dev/tty.SLAB_USBtoUART3 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 4MB 0x0000 ~/downloads/adafruit-circuitpython-espressif_saola_1_wroom-en_US-6.0.0-rc.1.bin
+esptool.py --chip esp32s2 --port /dev/tty.SLAB_USBtoUART3 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 4MB 0x0000 ~/downloads/adafruit-circuitpython-espressif_saola_1_wroom-en_US-6.0.0-rc.2.bin
 ```
 
 ### Connect to REPL
@@ -57,4 +57,9 @@ esptool.py --chip esp32s2 --port /dev/tty.SLAB_USBtoUART3 -b 460800 --before=def
 ```bash
 screen /dev/tty.usbmodem7CDFA100994C1 115200
 ```
+
+### Wifi
+
+[Internet Connect!](https://learn.adafruit.com/adafruit-metro-esp32-s2/internet-connect)
+
 
