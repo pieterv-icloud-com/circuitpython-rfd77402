@@ -15,6 +15,8 @@ import wifi
 import socketpool
 import adafruit_requests
 
+import adafruit_minimqtt.adafruit_minimqtt as MQTT
+
 # Get wifi details and more from a secrets.py file
 try:
     from secrets import secrets
@@ -26,6 +28,27 @@ print("Connecting to %s"%secrets["ssid"])
 wifi.radio.connect(secrets["ssid"], secrets["password"])
 print(print("Connected to %s!"%secrets["ssid"]))
 print("My IP address is", wifi.radio.ipv4_address)
+
+topic = "kitchen/ivy"
+
+# Initialize MQTT interface with the esp interface
+# MQTT.set_socket(socket, esp)
+
+# Set up a MiniMQTT Client
+client = MQTT.MQTT(
+    broker=secrets["broker"], username=secrets["user"], password=secrets["pass"], port=1883
+)
+
+print("Attempting to connect to %s" % client.broker)
+client.connect()
+
+client.ping()
+
+print("Publishing to %s" % topic)
+client.publish(topic, "Hello Broker!")
+
+print("Disconnecting from %s" % client.broker)
+client.disconnect()
 
 displayio.release_displays()
 
